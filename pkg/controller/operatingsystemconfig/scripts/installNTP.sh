@@ -12,7 +12,7 @@ install_ntp() {
   # We mitigate this by uninstalling systemd-timesyncd first
   # so there is no conflict anymore.
   if [[ $(uname -m) == "aarch64" ]]; then
-    apt remove systemd-timesyncd
+    apt remove -y systemd-timesyncd
   fi
   echo "apt update && apt install -y ntp"
   apt update && DEBIAN_FRONTEND=noninteractive apt install -o Dpkg::Options::="--force-confold" -y ntp
@@ -37,7 +37,7 @@ install_systemd_timesyncd() {
   # We mitigate this by uninstalling ntp first
   # so there is no conflict anymore.
   if [[ $(uname -m) == "aarch64" ]]; then
-    apt remove ntp
+    apt remove -y ntp
   fi
   echo "apt update && apt install -y systemd-timesyncd"
   apt update && DEBIAN_FRONTEND=noninteractive apt install -y systemd-timesyncd

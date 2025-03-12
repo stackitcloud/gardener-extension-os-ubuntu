@@ -8,6 +8,12 @@ install_ntp() {
     echo "Package is already installed!"
     return
   fi
+  # Package seems to be broken on aarch64 for Ubuntu 22.04
+  # We mitigate this by uninstalling systemd-timesyncd first
+  # so there is no conflict anymore.
+  if [[ $(uname -m) == "aarch64" ]]; then
+    apt remove -y systemd-timesyncd
+  fi
   echo "apt update && apt install -y ntp"
   apt update && DEBIAN_FRONTEND=noninteractive apt install -o Dpkg::Options::="--force-confold" -y ntp
   echo "ntp installed successfully!"
@@ -26,6 +32,12 @@ install_systemd_timesyncd() {
   if package_installed systemd-timesyncd; then
     echo "Package is already installed!"
     return
+  fi
+  # Package seems to be broken on aarch64 for Ubuntu 22.04
+  # We mitigate this by uninstalling ntp first
+  # so there is no conflict anymore.
+  if [[ $(uname -m) == "aarch64" ]]; then
+    apt remove -y ntp
   fi
   echo "apt update && apt install -y systemd-timesyncd"
   apt update && DEBIAN_FRONTEND=noninteractive apt install -y systemd-timesyncd

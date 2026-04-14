@@ -6,6 +6,10 @@
 /bin
 hack/tools/bin
 
+artifacts/
+images.txt
+images.json
+
 *.coverprofile
 *.html
 .vscode

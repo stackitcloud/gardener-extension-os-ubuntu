@@ -7,10 +7,10 @@ GARDENER_HACK_DIR           := $(shell go list -m -f "{{.Dir}}" github.com/garde
 EXTENSION_PREFIX            := gardener-extension
 NAME                        := os-ubuntu
 REGISTRY                    := europe-docker.pkg.dev/gardener-project/public
-IMAGE_PREFIX                := $(REGISTRY)/gardener/extensions
+IMAGE_PREFIX                := $(REGISTRY)/stackitcloud/gardener-extension-os-ubuntu
 REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 HACK_DIR                    := $(REPO_ROOT)/hack
-VERSION                     := $(shell cat "$(REPO_ROOT)/VERSION")
+VERSION 					:= $(shell git describe --tag --always --dirty)
 LD_FLAGS                    := "-w -X github.com/gardener/$(EXTENSION_PREFIX)-$(NAME)/pkg/version.Version=$(IMAGE_TAG)"
 LEADER_ELECTION             := true
 IGNORE_OPERATION_ANNOTATION := true
@@ -20,7 +20,13 @@ PLATFORM                    ?= linux/amd64
 # Tools                                 #
 #########################################
 
-TOOLS_DIR := $(HACK_DIR)/tools
+TOOLS_DIR := $(HACK_DIR)/tools/bin
+
+KO := $(TOOLS_DIR)/ko
+KO_VERSION ?= v0.18.1
+$(KO): $(call tool_version_file,$(KO),$(KO_VERSION))
+	GOBIN=$(abspath $(TOOLS_DIR)) go install github.com/google/ko@$(KO_VERSION)
+
 include $(GARDENER_HACK_DIR)/tools.mk
 
 #########################################
@@ -38,6 +44,27 @@ start:
 #################################################################
 # Rules related to binary build, Docker image build and release #
 #################################################################
+
+PUSH ?= false
+OUTPUT_IMAGES_PATH = "images.txt"
+
+.PHONY: images
+images: $(KO) ## Builds a container image with the app using ko. Use PUSH=True to also push the image to a registry
+	KO_DOCKER_REPO="$(IMAGE_PREFIX)" \
+	$(KO) build --push=$(PUSH) \
+	--image-label org.opencontainers.image.source="https://github.com/stackitcloud/gardener-extension-os-ubuntu" \
+	--sbom none -t $(VERSION) --bare \
+	--platform linux/amd64,linux/arm64 \
+	./cmd/$(EXTENSION_PREFIX)-$(NAME) \
+	| tee $(OUTPUT_IMAGES_PATH)
+	@jq -n --arg key "$(EXTENSION_PREFIX)-$(NAME)" --arg value "$$(cat $(OUTPUT_IMAGES_PATH))" '{images: {($$key): $$value}}' > images.json
+
+.PHONY: artifacts-only
+artifacts-only: $(YQ) $(HELM) ## Builds helm charts (`charts/`)
+	PUSH=$(PUSH) hack/push-artifacts.sh images.json
+
+.PHONY: artifacts
+artifacts: images artifacts-only ## Builds all artifacts.
 
 .PHONY: install
 install:

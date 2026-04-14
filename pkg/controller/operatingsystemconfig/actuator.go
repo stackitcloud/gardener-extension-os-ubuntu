@@ -108,7 +108,14 @@ EOF
 chmod 0644 /etc/cloud/cloud.cfg.d/custom-networking.cfg
 ` + writeFilesToDiskScript + `
 ` + writeUnitsToDiskScript + `
-until apt-get update -qq && apt-get install --no-upgrade -qqy containerd=1.7.24-0ubuntu1~22.04.2 runc socat nfs-common logrotate jq policykit-1; do sleep 1; done
+
+cat <<EOF > /etc/apt/preferences.d/99-containerd-block-jammy-updates
+Package: containerd
+Pin: release a=jammy-updates
+Pin-Priority: -10
+EOF
+
+until apt-get update -qq && apt-get install --no-upgrade -qqy containerd runc socat nfs-common logrotate jq policykit-1; do sleep 1; done
 
 if [ ! -s /etc/containerd/config.toml ]; then
   mkdir -p /etc/containerd/

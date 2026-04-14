@@ -7,17 +7,14 @@ GARDENER_HACK_DIR           := $(shell go list -m -f "{{.Dir}}" github.com/garde
 EXTENSION_PREFIX            := gardener-extension
 NAME                        := os-ubuntu
 REGISTRY                    := europe-docker.pkg.dev/gardener-project/public
-IMAGE_PREFIX                := $(REGISTRY)/gardener/extensions
+IMAGE_PREFIX                := $(REGISTRY)/stackitcloud/gardener-extension-os-ubuntu
 REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 HACK_DIR                    := $(REPO_ROOT)/hack
-VERSION 					:= $(shell git describe --tags --exact-match 2>/dev/null || git rev-parse --short=7 HEAD)
+VERSION 					:= $(shell git describe --tag --always --dirty)
 LD_FLAGS                    := "-w -X github.com/gardener/$(EXTENSION_PREFIX)-$(NAME)/pkg/version.Version=$(IMAGE_TAG)"
 LEADER_ELECTION             := true
 IGNORE_OPERATION_ANNOTATION := true
 PLATFORM                    ?= linux/amd64
-
-export REPO                 := reg3.infra.ske.eu01.stackit.cloud/stackitcloud/gardener-extension-os-ubuntu
-export TAG                  := $(VERSION)
 
 #########################################
 # Tools                                 #
@@ -53,10 +50,10 @@ OUTPUT_IMAGES_PATH = "images.txt"
 
 .PHONY: images
 images: $(KO) ## Builds a container image with the app using ko. Use PUSH=True to also push the image to a registry
-	KO_DOCKER_REPO=$(REPO) \
+	KO_DOCKER_REPO="$(IMAGE_PREFIX)" \
 	$(KO) build --push=$(PUSH) \
 	--image-label org.opencontainers.image.source="https://github.com/stackitcloud/gardener-extension-os-ubuntu" \
-	--sbom none -t $(TAG) --bare \
+	--sbom none -t $(VERSION) --bare \
 	--platform linux/amd64,linux/arm64 \
 	./cmd/$(EXTENSION_PREFIX)-$(NAME) \
 	| tee $(OUTPUT_IMAGES_PATH)

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-set -o errexit
 set -o nounset
 set -o pipefail
 
@@ -91,7 +90,7 @@ for chart_name in $chart_names; do
 
     if [ -d "${chart_source_dir}/charts" ]; then
         echo "$chart_name has multiple charts"
-        for subchart in "${chart_source_dir}"/charts/*; do
+        for subchart in $(ls "${chart_source_dir}/charts"); do
             echo "${chart_source_dir}/charts/${subchart}"
             package_and_push_chart "${chart_source_dir}/charts/${subchart}"
         done

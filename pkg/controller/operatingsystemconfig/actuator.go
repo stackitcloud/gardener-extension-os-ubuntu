@@ -109,19 +109,14 @@ chmod 0644 /etc/cloud/cloud.cfg.d/custom-networking.cfg
 ` + writeFilesToDiskScript + `
 ` + writeUnitsToDiskScript + `
 
-cat <<EOF > /etc/apt/preferences.d/99-containerd-block-jammy-updates
-Package: containerd
-Pin: release a=jammy-updates
-Pin-Priority: -10
-EOF
+curl -fsSL http://mirror.eu01.stackit.cloud/docker/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [signed-by=/etc/apt/keyrings/docker.gpg] http://mirror.eu01.stackit.cloud/docker jammy stable" > /etc/apt/sources.list.d/stackit-docker-mirror.list
 
-until apt-get update -qq && apt-get install --no-upgrade -qqy containerd runc socat nfs-common logrotate jq policykit-1; do sleep 1; done
+until apt-get update -qq && apt-get install --no-upgrade -qqy containerd.io=1.7.29-1~ubuntu.22.04~jammy socat nfs-common logrotate jq policykit-1; do sleep 1; done
+apt-mark hold containerd.io
 
-if [ ! -s /etc/containerd/config.toml ]; then
-  mkdir -p /etc/containerd/
-  containerd config default > /etc/containerd/config.toml
-  chmod 0644 /etc/containerd/config.toml
-fi
+containerd config default > /etc/containerd/config.toml
+chmod 0644 /etc/containerd/config.toml
 
 mkdir -p /etc/systemd/system/containerd.service.d
 cat <<EOF > /etc/systemd/system/containerd.service.d/11-exec_config.conf

@@ -109,8 +109,20 @@ chmod 0644 /etc/cloud/cloud.cfg.d/custom-networking.cfg
 ` + writeFilesToDiskScript + `
 ` + writeUnitsToDiskScript + `
 
-curl -fsSL http://mirror.eu01.stackit.cloud/docker/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-echo "deb [signed-by=/etc/apt/keyrings/docker.gpg] http://mirror.eu01.stackit.cloud/docker jammy stable" > /etc/apt/sources.list.d/stackit-docker-mirror.list
+GPG_KEYPRINT="9DC8 5822 9FC7 DD38 854A  E2D8 8D81 803C 0EBF CD88"
+curl -fsSL http://mirror.eu01.stackit.cloud/docker/gpg -o docker.gpg
+
+if gpg --show-keys --fingerprint docker.gpg | grep -q "$GPG_KEYPRINT"; then
+	echo "OK"
+else
+	echo "GPG Integrity check failed"
+	exit 1
+fi
+
+gpg --dearmor -o /etc/apt/keyrings/docker.gpg docker.gpg
+
+echo "deb [signed-by=/etc/apt/keyrings/docker.gpg] http://mirror.eu01.stackit.cloud/docker jammy stable" \
+	> /etc/apt/sources.list.d/stackit-docker-mirror.list
 
 until apt-get update -qq && apt-get install --no-upgrade -qqy containerd.io=1.7.29-1~ubuntu.22.04~jammy socat nfs-common logrotate jq policykit-1; do sleep 1; done
 apt-mark hold containerd.io

@@ -109,14 +109,14 @@ chmod 0644 /etc/cloud/cloud.cfg.d/custom-networking.cfg
 ` + writeFilesToDiskScript + `
 ` + writeUnitsToDiskScript + `
 
-SHA_256="1500c1f56fa9e26b9b8f42452a553675796ade0807cdce11975eb98170b3a570 docker.gpg"
-curl -fsSL http://mirror.eu01.stackit.cloud/docker/gpg -o docker.gpg
+SHA_256="1500c1f56fa9e26b9b8f42452a553675796ade0807cdce11975eb98170b3a570 /tmp/docker.gpg"
+curl -fsSL http://mirror.eu01.stackit.cloud/docker/gpg -o /tmp/docker.gpg
 echo "$SHA_256" | sha256sum -c - || {
     echo "GPG Integrity check failed"
     exit 1
 }
 
-gpg --dearmor -o /etc/apt/keyrings/docker.gpg docker.gpg
+gpg --dearmor -o /etc/apt/keyrings/docker.gpg /tmp/docker.gpg
 echo "deb [signed-by=/etc/apt/keyrings/docker.gpg] http://mirror.eu01.stackit.cloud/docker jammy stable" \
     > /etc/apt/sources.list.d/stackit-docker-mirror.list
 

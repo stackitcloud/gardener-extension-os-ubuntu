@@ -109,9 +109,9 @@ chmod 0644 /etc/cloud/cloud.cfg.d/custom-networking.cfg
 ` + writeFilesToDiskScript + `
 ` + writeUnitsToDiskScript + `
 
-GPG_KEYPRINT="9DC8 5822 9FC7 DD38 854A  E2D8 8D81 803C 0EBF CD88"
+SHA_256="1500c1f56fa9e26b9b8f42452a553675796ade0807cdce11975eb98170b3a570 docker.gpg"
 curl -fsSL http://mirror.eu01.stackit.cloud/docker/gpg -o docker.gpg
-gpg --show-keys --fingerprint docker.gpg | grep -q "$GPG_KEYPRINT" || {
+echo "$SHA_256" | sha256sum -c - || {
 	echo "GPG Integrity check failed"
 	exit 1
 }

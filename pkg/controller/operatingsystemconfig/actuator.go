@@ -112,12 +112,13 @@ chmod 0644 /etc/cloud/cloud.cfg.d/custom-networking.cfg
 SHA_256="1500c1f56fa9e26b9b8f42452a553675796ade0807cdce11975eb98170b3a570 docker.gpg"
 curl -fsSL http://mirror.eu01.stackit.cloud/docker/gpg -o docker.gpg
 echo "$SHA_256" | sha256sum -c - || {
-	echo "GPG Integrity check failed"
-	exit 1
+    echo "GPG Integrity check failed"
+    exit 1
 }
+
 gpg --dearmor -o /etc/apt/keyrings/docker.gpg docker.gpg
 echo "deb [signed-by=/etc/apt/keyrings/docker.gpg] http://mirror.eu01.stackit.cloud/docker jammy stable" \
-	> /etc/apt/sources.list.d/stackit-docker-mirror.list
+    > /etc/apt/sources.list.d/stackit-docker-mirror.list
 
 until apt-get update -qq && apt-get install --no-upgrade -qqy containerd.io=1.7.29-1~ubuntu.22.04~jammy socat nfs-common logrotate jq policykit-1; do sleep 1; done
 apt-mark hold containerd.io

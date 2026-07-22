@@ -114,7 +114,7 @@ curl -fsSL https://mirror.eu01.stackit.cloud/docker/gpg | gpg --dearmor -o /etc/
 echo "deb [signed-by=/etc/apt/keyrings/docker.gpg] http://mirror.eu01.stackit.cloud/docker jammy stable" \
     > /etc/apt/sources.list.d/stackit-docker-mirror.list
 
-until apt-get update -qq && apt-get install --no-upgrade -qqy containerd.io=1.7.29-1~ubuntu.22.04~jammy socat nfs-common logrotate jq policykit-1; do sleep 1; done
+until apt-get update -qq && apt-get install --no-upgrade -qqy containerd socat nfs-common logrotate jq; do sleep 1; done
 apt-mark hold containerd.io
 
 containerd config default > /etc/containerd/config.toml
